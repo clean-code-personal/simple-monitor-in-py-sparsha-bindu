@@ -1,18 +1,51 @@
+def check_temperature(temperature):
+  if temperature < 0:
+    return False, 'low'
+  elif temperature > 45:
+    return False, 'high'
+  else:
+    return True, None
 
-def battery_is_ok(temperature, soc, charge_rate):
-  if temperature < 0 or temperature > 45:
-    print('Temperature is out of range!')
-    return False
-  elif soc < 20 or soc > 80:
-    print('State of Charge is out of range!')
-    return False
-  elif charge_rate > 0.8:
-    print('Charge rate is out of range!')
-    return False
+def check_soc(soc):
+  if soc < 20:
+    return False, 'low'
+  elif soc > 80:
+    return False, 'high'
+  else:
+    return True, None
 
-  return True
+def check_charge_rate_ok(charge_rate):
+  if charge_rate > 0.8:
+    return False, 'high'
+  else:
+    return True, None
 
+def print_error_message(vital_name, breach_type):
+  print('{} is {}!'.format(vital_name, breach_type))
+
+def is_battery_ok(temperature, soc, charge_rate):
+  is_temp_ok, temp_breach_type = check_temperature(temperature)
+  is_soc_ok, soc_breach_type = check_soc(soc)
+  is_charge_rate_ok, charge_breach_type = check_charge_rate_ok(charge_rate)
+  
+  if not is_temp_ok:
+    return False, 'temperature', temp_breach_type
+  elif not is_soc_ok:
+    return False, 'state of charge', soc_breach_type
+  elif not is_charge_rate_ok:
+    return False, 'charge rate', charge_breach_type
+  else:
+    return True, None, None
+
+def battery_status(temperature, soc, charge_rate, reporter=print_error_message):
+  is_ok, vital_name, breach_type = is_battery_ok(temperature, soc, charge_rate)
+  if not is_ok:
+    reporter(vital_name, breach_type)
+  return is_ok,vital_name,breach_type
 
 if __name__ == '__main__':
-  assert(battery_is_ok(25, 70, 0.7) is True)
-  assert(battery_is_ok(50, 85, 0) is False)
+  assert(battery_status(25, 70, 0.7) is True)
+  assert(battery_status(50, 85, 0) is False)
+  assert(battery_status(-5, 40, 0) is False)
+  assert(battery_status(50, 85, 0)[1] == 'state of charge')
+  assert(battery_status(50, 85, 0)[2] == 'high')
