@@ -13,14 +13,16 @@ class Battery:
         self.temperature = BatteryParameter("Temperature", temperature, 0, 45)
         self.soc = BatteryParameter("State of Charge", soc, 20, 80)
         self.charge_rate = BatteryParameter("Charge Rate", charge_rate, 0, 0.8)
-
-  def is_ok(self):
+    
+    def is_ok(self):
         battery_parameters = [self.temperature, self.soc, self.charge_rate]
         if any(param.is_out_of_range() for param in battery_parameters):
             failed_params = [param for param in battery_parameters if param.is_out_of_range()]
             return False, failed_params
         else:
             return True
+
+
 
 def check_battery(battery):
     result = battery.is_ok()
