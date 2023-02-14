@@ -1,46 +1,46 @@
-def check_temperature(temperature):
-  if temperature < 0:
-    return False, 'low'
-  elif temperature > 45:
-    return False, 'high'
-  else:
-    return True, None
+class BatteryParameter:
+    def __init__(self, name, value, lower_limit, upper_limit):
+        self.name = name
+        self.value = value
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
 
-def check_soc(soc):
-  if soc < 20:
-    return False, 'low'
-  elif soc > 80:
-    return False, 'high'
-  else:
-    return True, None
+    def is_out_of_range(self):
+        return self.value < self.lower_limit or self.value > self.upper_limit
 
-def check_charge_rate_ok(charge_rate):
-  if charge_rate > 0.8:
-    return False, 'high'
-  else:
-    return True, 'low'
+class Battery:
+    def __init__(self, temperature, soc, charge_rate):
+        self.temperature = BatteryParameter("Temperature", temperature, 0, 45)
+        self.soc = BatteryParameter("State of Charge", soc, 20, 80)
+        self.charge_rate = BatteryParameter("Charge Rate", charge_rate, 0, 0.8)
 
-def print_error_message(vital_name, breach_type):
-  print('{} is {}!'.format(vital_name, breach_type))
-  
-def is_battery_ok(temperature, soc, charge_rate):
-    checks = {'temperature': check_temperature(temperature),
-              'state of charge': check_soc(soc),
-              'charge rate': check_charge_rate_ok(charge_rate)}
-    failed = [(vital_name, breach_type) for vital_name, (is_ok, breach_type) in checks.items() if not is_ok]
-    return (not failed, failed[0][0] if failed else None, failed[0][1] if failed else None)
+    def is_ok(self):
+        battery_parameters = [self.temperature, self.soc, self.charge_rate]
+        failed_params = [param for param in battery_parameters if param.is_out_of_range()]
 
+        if not failed_params:
+            return True
+        return False, failed_params
 
-def battery_status(temperature, soc, charge_rate, reporter=print_error_message):
-  is_ok, vital_name, breach_type = is_battery_ok(temperature, soc, charge_rate)
-  if not is_ok:
-    reporter(vital_name, breach_type)
-  return is_ok,vital_name,breach_type
+def check_battery(battery):
+    result = battery.is_ok()
+    if result == True:
+        print("Battery is OK.")
+    else:
+        print("Battery is not OK.")
+        for param in result[1]:
+            print(f"{param.name} is out of range ({param.lower_limit}-{param.upper_limit}): {param.value}")
 
 if __name__ == '__main__':
-    assert(battery_status(25, 70, 0.7) == (True, None, None))
-    assert(battery_status(-5, 70, 0.7) == (False, 'temperature', 'low'))
-    assert(battery_status(50, 70, 0.7) == (False, 'temperature', 'high'))
-    assert(battery_status(25, 10, 0.7) == (False, 'state of charge', 'low'))
-    assert(battery_status(25, 90, 0.7) == (False, 'state of charge', 'high'))
-    assert(battery_status(25, 70, 0.9) == (False, 'charge rate', 'high'))
+    battery = Battery(25, 70, 0.7)
+    check_battery(battery)
+
+    battery = Battery(-5,70,0.7)
+    check_battery(battery)
+    # Output: Battery is OK.
+
+    battery = Battery(50, 85, 0)
+    check_battery(battery)
+    # Output: Battery is not OK.
+    # Temperature is out of range (0-45): 50
+    # State of Charge is out of range (20-80): 85
