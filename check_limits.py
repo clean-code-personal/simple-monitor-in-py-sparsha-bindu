@@ -16,7 +16,6 @@ class BatteryParameter:
                 return "high"
         return None
 
-
 class Battery:
     def __init__(self, temperature, soc, charge_rate):
         self.temperature = BatteryParameter("Temperature", temperature, 0, 45)
@@ -40,7 +39,6 @@ class Battery:
                 vitals.append((param.name, breach_type, param.value))
         return vitals
 
-
 def check_battery(battery):
     result = battery.is_ok()
     if result[0]:
@@ -49,21 +47,5 @@ def check_battery(battery):
         print("Battery is not OK.")
         for vital in battery.get_vitals_with_breach():
             print(f"{vital[0]} is {vital[1]} ({vital[2]}).")
-
-
-if __name__ == '__main__':
-    battery = Battery(25, 70, 0.7)
-    check_battery(battery)
-
-    battery = Battery(-5,70,0.7)
-    check_battery(battery)
-    # Output: Battery is not OK.
-    # Temperature is low (-5).
-
-    battery = Battery(50, 85, 0)
-    check_battery(battery)
-    # Output: Battery is not OK.
-    # Temperature is high (50).
-    # State of Charge is high (85).```
 
 
