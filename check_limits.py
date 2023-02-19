@@ -9,8 +9,8 @@ class Battery:
         self.lang = lang
 
     def battery_is_ok(self):
-        if self.temp_unit=='Fahrenheit':
-            self.temperature = convert_to_celsius(self.temperature, self.temp_unit)
+        
+        self.temperature = convert_to_celsius(self.temperature, self.temp_unit)
         return (is_ok(self.temperature, 0, 45, language.messages[self.lang]['temperature'], self.lang, self.temp_unit) and
                 is_ok(self.soc, 20, 80, language.messages[self.lang]['soc'], self.lang) and
                 is_ok(self.charge_rate, 0, 0.8, language.messages[self.lang]['chargeRate'], self.lang))
@@ -22,7 +22,9 @@ def is_ok(input_val, lower_limit, upper_limit, breach_type, lang, unit=""):
     return True
 
 def convert_to_celsius(temperature, unit):
-    return (temperature - 32) * 5/9
+    if unit =='Fahrenheit': 
+        return (temperature - 32) * 5/9
+    return temperature
 
 
 def check_battery(battery):
