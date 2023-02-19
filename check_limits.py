@@ -1,51 +1,34 @@
-class BatteryParameter:
-    def __init__(self, name, value, lower_limit, upper_limit):
-        self.name = name
-        self.value = value
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
-
-    def is_out_of_range(self):
-        return self.value < self.lower_limit or self.value > self.upper_limit
-
-    def get_breach_type(self):
-        if self.is_out_of_range():
-            if self.value < self.lower_limit:
-                return "low"
-            else:
-                return "high"
-        return None
+import language
 
 class Battery:
-    def __init__(self, temperature, soc, charge_rate):
-        self.temperature = BatteryParameter("Temperature", temperature, 0, 45)
-        self.soc = BatteryParameter("State of Charge", soc, 20, 80)
-        self.charge_rate = BatteryParameter("Charge Rate", charge_rate, 0, 0.8)
+    def __init__(self, temperature, soc, charge_rate, temp_unit, lang):
+        self.temperature = temperature
+        self.soc = soc
+        self.charge_rate = charge_rate
+        self.temp_unit = temp_unit
+        self.lang = lang
 
-    def is_ok(self):
-        failed_params = self.get_failed_params()
-        return not failed_params, failed_params
+    def battery_is_ok(self):
+        if self.temp_unit=='Fahrenheit':
+            self.temperature = convert_to_celsius(self.temperature, self.temp_unit)
+        return (is_ok(self.temperature, 0, 45, language.messages[self.lang]['temperature'], self.lang, self.temp_unit) and
+                is_ok(self.soc, 20, 80, language.messages[self.lang]['soc'], self.lang) and
+                is_ok(self.charge_rate, 0, 0.8, language.messages[self.lang]['chargeRate'], self.lang))
 
-    def get_failed_params(self):
-        battery_parameters = [self.temperature, self.soc, self.charge_rate]
-        return [param for param in battery_parameters if param.is_out_of_range()]
+def is_ok(input_val, lower_limit, upper_limit, breach_type, lang, unit=""):
+    if input_val < lower_limit or input_val > upper_limit:
+        print(language.messages[lang]['outOfRange'](breach_type))
+        return False
+    return True
 
-    def get_vitals_with_breach(self):
-        vitals = []
-        battery_parameters = [self.temperature, self.soc, self.charge_rate]
-        for param in battery_parameters:
-            breach_type = param.get_breach_type()
-            if breach_type:
-                vitals.append((param.name, breach_type, param.value))
-        return vitals
+def convert_to_celsius(temperature, unit):
+    return (temperature - 32) * 5/9
+
 
 def check_battery(battery):
-    result = battery.is_ok()
-    if result[0]:
-        print("Battery is OK.")
+    if battery.battery_is_ok():
+        print(language.messages[battery.lang]['batteryOk'])
+        return True
     else:
-        print("Battery is not OK.")
-        for vital in battery.get_vitals_with_breach():
-            print(f"{vital[0]} is {vital[1]} ({vital[2]}).")
-
-
+        print(language.messages[battery.lang]['batteryNotOk'])
+        return False
